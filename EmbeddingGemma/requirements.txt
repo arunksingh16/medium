@@ -1,0 +1,7 @@
+sentence-transformers>=6.1.0
+transformers
+numpy==1.26.4
+boto3
+scipy==1.12.0
+pillow==12.3.0
+torchvision==0.29.1

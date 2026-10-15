@@ -1,0 +1,17 @@
+[
+  {"q": "find out which text encoding the server used from the response headers", "want": ["get_encoding_from_headers", "_parse_content_type_header"]},
+  {"q": "do not send login credentials when a redirect goes to a different website", "want": ["should_strip_auth", "rebuild_auth"]},
+  {"q": "compute the hashed challenge response for HTTP digest login", "want": ["build_digest_header"]},
+  {"q": "turn the body of the reply into a Python dictionary", "want": ["Response.json"]},
+  {"q": "pick up proxy servers from environment variables like HTTPS_PROXY", "want": ["get_environ_proxies", "rebuild_proxies", "should_bypass_proxies"]},
+  {"q": "check whether a host is listed in no_proxy", "want": ["should_bypass_proxies"]},
+  {"q": "convert a cookie jar into a plain dict", "want": ["dict_from_cookiejar"]},
+  {"q": "download a large file piece by piece instead of loading it all into memory", "want": ["iter_content"]},
+  {"q": "throw an exception when the server answers with a 4xx or 5xx status", "want": ["raise_for_status"]},
+  {"q": "figure out how many bytes a file-like object contains", "want": ["super_len", "prepare_content_length"]},
+  {"q": "detect whether JSON bytes are UTF-8, UTF-16 or UTF-32", "want": ["guess_json_utf"]},
+  {"q": "attach a custom transport adapter for a URL prefix", "want": ["Session.mount"]},
+  {"q": "verify TLS certificates and load the CA bundle", "want": ["cert_verify"]},
+  {"q": "keep following redirect responses until the final page", "want": ["resolve_redirects"]},
+  {"q": "combine per-request options with the session defaults", "want": ["merge_setting"]}
+]
