@@ -1,0 +1,57 @@
+# .github/workflows/integration.yml
+# Integration tests against AWS Emulator on a Linux runner.
+# No AWS account, no OIDC role, no secrets. Each job gets its own emulator
+# (own port, keys and in-memory state), so jobs cannot see each other's data.
+name: integration
+on: [pull_request]
+
+jobs:
+  unit:                      # fast inner loop: moto, in-process
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: TEST_BACKEND=moto ./run_tests.sh
+
+  emulator:                  # wire-level check: real SDK, real HTTPS, real SigV4
+    runs-on: ubuntu-latest
+    env:
+      PORT: 9297
+      EMULATOR_TELEMETRY: "off"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+
+      - name: Install AWS Emulator (Debian package, amd64)
+        run: |
+          curl -fsSLo aws-emulator.deb \
+            https://downloads.aws.com/aws-emulator/packages/aws-emulator/LTS/latest/aws-emulator_amd64.deb
+          sudo apt-get install -y ./aws-emulator.deb
+          aws-emulator -v
+
+      - name: Start emulator and wait for health
+        run: |
+          nohup aws-emulator -p $PORT > emulator.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fs --cacert ~/.aws/emulator/$PORT/ca.pem \
+              https://127.0.0.1:$PORT/__admin/health && break
+            sleep 1
+          done
+
+      - name: Run tests against the emulator
+        run: |
+          source ./env.sh $PORT
+          ./run_tests.sh -n 4
+
+      - name: Keep the API footprint as a build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-footprint
+          path: |
+            out/footprint-*.json
+            emulator.log
